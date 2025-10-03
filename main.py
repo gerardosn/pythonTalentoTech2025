@@ -57,13 +57,57 @@ def mostrar_productos():
 
 
 def buscar_producto():
-    """Stub para buscar un producto (opción 3)."""
-    print("\n[Buscar producto] — función no implementada aún.\n")
+    """Busca y muestra la información de un producto por su nombre."""
+    print("\n[Buscar producto]")
+
+    nombre_buscar = input("Ingrese el nombre del producto a buscar: ").strip()
+    while not nombre_buscar:
+        print("El nombre del producto no puede estar vacío.")
+        nombre_buscar = input("Ingrese el nombre del producto a buscar: ").strip()
+
+    encontrado = False
+    for producto in productos:
+        if producto[0].lower() == nombre_buscar.lower():
+            print(f"\nProducto encontrado: ")
+            print(f"  Nombre: {producto[0]}")
+            print(f"  Categoría: {producto[1]}")
+            print(f"  Precio: {producto[2]}")
+            encontrado = True
+            break
+
+    if not encontrado:
+        print(f"El producto '{nombre_buscar}' no se encontró.\n")
 
 
 def eliminar_producto():
-    """Stub para eliminar un producto (opción 4)."""
-    print("\n[Eliminar producto] — función no implementada aún.\n")
+    """Elimina un producto de la lista por su posición (índice)."""
+    print("\n[Eliminar producto]")
+
+    if not productos:
+        print("No hay productos para eliminar.\n")
+        return
+
+    mostrar_productos()  # Muestra los productos con sus índices
+
+    posicion_eliminar = None
+    while posicion_eliminar is None:
+        posicion_str = input("Ingrese la posición del producto a eliminar: ").strip()
+        if not posicion_str:
+            print("La posición no puede estar vacía.")
+            continue
+        if not posicion_str.isdigit():
+            print("Entrada inválida. Ingrese un número entero para la posición.")
+            continue
+        posicion = int(posicion_str)
+
+        if 0 <= posicion < len(productos):
+            posicion_eliminar = posicion
+        else:
+            print("Posición no encontrada. Por favor ingrese un índice válido.\n")
+
+    nombre_producto_eliminado = productos[posicion_eliminar][0]
+    del productos[posicion_eliminar]
+    print(f"Producto '{nombre_producto_eliminado}' eliminado exitosamente.\n")
 
 
 def main():
