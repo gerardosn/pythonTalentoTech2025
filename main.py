@@ -6,28 +6,20 @@ Este script muestra un menú interactivo con opciones stub para gestionar produc
 La opción 5 cierra la aplicación.
 """
 
-# Lista temporal para almacenar productos (sublistas: [nombre, categoria, precio])
-productos = [
-    ["Camisa", "Ropa", 25],
-    ["Zapatos", "Calzado", 50],
-    ["Gorra", "Accesorios", 15],
-]
-
+import sqlite3
+DB_PATH = 'productos.db'
 
 def agregar_producto():
-    """Agrega un nuevo producto a la lista de productos."""
+    """Agrega un nuevo producto a la base de datos."""
     print("\n[Agregar producto]")
-
     nombre = input("Ingrese el nombre del producto: ").strip()
     while not nombre:
         print("El nombre del producto no puede estar vacío.")
         nombre = input("Ingrese el nombre del producto: ").strip()
-
     categoria = input("Ingrese la categoría del producto: ").strip()
     while not categoria:
         print("La categoría del producto no puede estar vacía.")
         categoria = input("Ingrese la categoría del producto: ").strip()
-
     precio = None
     while precio is None:
         precio_str = input("Ingrese el precio del producto (número entero): ").strip()
@@ -38,57 +30,60 @@ def agregar_producto():
             print("Entrada inválida. Ingrese un número entero para el precio.")
             continue
         precio = int(precio_str)
-
-    productos.append([nombre, categoria, precio])
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("INSERT INTO productos (nombre, categoria, precio) VALUES (?, ?, ?)", (nombre, categoria, precio))
+        conn.commit()
     print(f"Producto '{nombre}' agregado exitosamente.\n")
 
 
 def mostrar_productos():
-    """Muestra todos los productos en la lista."""
+    """Muestra todos los productos en la base de datos."""
     print("\n[Mostrar productos]")
-
-    if not productos:
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT nombre, categoria, precio FROM productos")
+        productos_db = cur.fetchall()
+    if not productos_db:
         print("No hay productos para mostrar.")
         return
-
-    for i, producto in enumerate(productos):
+    for i, producto in enumerate(productos_db):
         print(f"{i}. Nombre: {producto[0]}, Categoría: {producto[1]}, Precio: {producto[2]}")
     print("\n")
 
 
 def buscar_producto():
-    """Busca y muestra la información de un producto por su nombre."""
+    """Busca y muestra la información de un producto por su nombre en la base de datos."""
     print("\n[Buscar producto]")
-
     nombre_buscar = input("Ingrese el nombre del producto a buscar: ").strip()
     while not nombre_buscar:
         print("El nombre del producto no puede estar vacío.")
         nombre_buscar = input("Ingrese el nombre del producto a buscar: ").strip()
-
-    encontrado = False
-    for producto in productos:
-        if producto[0].lower() == nombre_buscar.lower():
-            print(f"\nProducto encontrado: ")
-            print(f"  Nombre: {producto[0]}")
-            print(f"  Categoría: {producto[1]}")
-            print(f"  Precio: {producto[2]}")
-            encontrado = True
-            break
-
-    if not encontrado:
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT nombre, categoria, precio FROM productos WHERE LOWER(nombre) = LOWER(?)", (nombre_buscar,))
+        producto = cur.fetchone()
+    if producto:
+        print(f"\nProducto encontrado: ")
+        print(f"  Nombre: {producto[0]}")
+        print(f"  Categoría: {producto[1]}")
+        print(f"  Precio: {producto[2]}")
+    else:
         print(f"El producto '{nombre_buscar}' no se encontró.\n")
 
 
 def eliminar_producto():
-    """Elimina un producto de la lista por su posición (índice)."""
+    """Elimina un producto de la base de datos por su posición (índice mostrado)."""
     print("\n[Eliminar producto]")
-
-    if not productos:
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id, nombre, categoria, precio FROM productos")
+        productos_db = cur.fetchall()
+    if not productos_db:
         print("No hay productos para eliminar.\n")
         return
-
-    mostrar_productos()  # Muestra los productos con sus índices
-
+    for i, producto in enumerate(productos_db):
+        print(f"{i}. Nombre: {producto[1]}, Categoría: {producto[2]}, Precio: {producto[3]}")
     posicion_eliminar = None
     while posicion_eliminar is None:
         posicion_str = input("Ingrese la posición del producto a eliminar: ").strip()
@@ -99,15 +94,16 @@ def eliminar_producto():
             print("Entrada inválida. Ingrese un número entero para la posición.")
             continue
         posicion = int(posicion_str)
-
-        if 0 <= posicion < len(productos):
+        if 0 <= posicion < len(productos_db):
             posicion_eliminar = posicion
         else:
             print("Posición no encontrada. Por favor ingrese un índice válido.\n")
-
-    nombre_producto_eliminado = productos[posicion_eliminar][0]
-    del productos[posicion_eliminar]
-    print(f"Producto '{nombre_producto_eliminado}' eliminado exitosamente.\n")
+    producto_a_eliminar = productos_db[posicion_eliminar]
+    with sqlite3.connect(DB_PATH) as conn:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM productos WHERE id = ?", (producto_a_eliminar[0],))
+        conn.commit()
+    print(f"Producto '{producto_a_eliminar[1]}' eliminado exitosamente.\n")
 
 
 def main():
