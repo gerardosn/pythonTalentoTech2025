@@ -7,6 +7,7 @@ La opción 5 cierra la aplicación.
 """
 
 import sqlite3
+import os
 DB_PATH = 'productos.db'
 
 def agregar_producto():
@@ -107,6 +108,10 @@ def eliminar_producto():
 
 
 def main():
+    # Comprobar existencia de la base de datos antes de mostrar el menú
+    if not os.path.exists(DB_PATH):
+        print("No existe la bd. ejecute iniciobd.py")
+        return
     while True:
         print("""
 *************************************
