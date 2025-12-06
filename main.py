@@ -14,6 +14,7 @@ def agregar_producto():
     """Agrega un nuevo producto a la base de datos."""
     print("\n[Agregar producto]")
     nombre = input("Ingrese el nombre del producto: ").strip()
+    # Verifica que el nombre no esté vacío antes de continuar.
     while not nombre:
         print("El nombre del producto no puede estar vacío.")
         nombre = input("Ingrese el nombre del producto: ").strip()
@@ -31,6 +32,10 @@ def agregar_producto():
             print("Entrada inválida. Ingrese un número entero para el precio.")
             continue
         precio = int(precio_str)
+    # Se utiliza un context manager (with statement) para manejar la conexión a la base de datos.
+    # Según la documentación oficial de Python, el context manager garantiza que la conexión se cierre automáticamente al salir del bloque:
+    # https://docs.python.org/3/library/sqlite3.html#using-the-connection-as-a-context-manager
+    # Por eso no es necesario llamar explícitamente a conn.close().
     with sqlite3.connect(DB_PATH) as conn:
         cur = conn.cursor()
         cur.execute("INSERT INTO productos (nombre, categoria, precio) VALUES (?, ?, ?)", (nombre, categoria, precio))
@@ -108,7 +113,10 @@ def eliminar_producto():
 
 
 def main():
-    # Comprobar existencia de la base de datos antes de mostrar el menú
+    # Verifica si el archivo de la base de datos existe antes de mostrar el menú.
+    # Utiliza os.path.exists(path) según la documentación oficial de Python:
+    # https://docs.python.org/3/library/os.path.html#os.path.exists
+    # Si la base de datos no existe, informa al usuario y termina la ejecución.
     if not os.path.exists(DB_PATH):
         print("No existe la bd. ejecute iniciobd.py")
         return
